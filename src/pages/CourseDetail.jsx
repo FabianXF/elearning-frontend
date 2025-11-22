@@ -132,36 +132,52 @@ const CourseDetail = () => {
 
     const handleDownloadMaterial = async (materialId, filename) => {
         try {
-            const response = await materialService.getById(materialId);
-            const blob = new Blob([response.data], { type: response.headers['content-type'] });
+            const token = localStorage.getItem('token');
+            const url = `http://localhost:8080/api/materiales/${materialId}?download=true`;
+            console.log('Descargando material:', { materialId, filename, url });
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
+            link.href = downloadUrl;
             link.download = filename;
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(link.href);
+            link.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+            console.log('✅ Material descargado exitosamente');
         } catch (error) {
-            console.error("Download failed", error);
-            alert("Error al descargar el material. Inténtalo de nuevo.");
+            console.error('Error downloading material:', error);
+            alert(`Error al descargar el material: ${error.message}`);
         }
     };
 
     const handleMarkComplete = async (materialId) => {
         try {
-            await progressService.markMaterialComplete(id, materialId);
-            // Refresh progress
+            const isCompleted = isMaterialCompleted(materialId);
+            console.log(`${isCompleted ? 'Desmarcando' : 'Marcando'} material:`, { materialId, courseId: id });
+            if (isCompleted) {
+                await progressService.unmarkMaterialComplete(id, materialId);
+            } else {
+                await progressService.markMaterialComplete(id, materialId);
+            }
             const progressData = await progressService.get(id);
+            console.log('Progreso actualizado:', progressData);
             setProgress(progressData.data);
         } catch (error) {
-            console.error("Error marking material as complete", error);
+            console.error("Error toggling material", error);
+            alert(`Error al actualizar material: ${error.response?.data?.message || error.message}`);
         }
     };
 
     const isMaterialCompleted = (materialId) => {
-        // Assuming progress.materialesVistos is an array of IDs or objects with id
         if (!progress || !progress.materialesVistos) return false;
-        return progress.materialesVistos.some(m => (typeof m === 'object' ? m.id === materialId : m === materialId));
+        return progress.materialesVistos.includes(parseInt(materialId));
     };
 
     const toggleModule = (moduleId) => {
@@ -294,28 +310,28 @@ const CourseDetail = () => {
 
                                                 {expandedModuleId === module.id && (
                                                     <div className="p-4 bg-white border-t">
-                                                        {module.Materiales && module.Materiales.length > 0 ? (
+                                                        {module.materiales && module.materiales.length > 0 ? (
                                                             <ul className="space-y-3">
-                                                                {module.Materiales.map((material) => (
-                                                                    <li key={material.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                                                                {module.materiales.map((material) => (
+                                                                    <li key={material.idMaterial || material.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
                                                                         <div className="flex items-center">
                                                                             <input
                                                                                 type="checkbox"
                                                                                 className="mr-3 h-5 w-5 text-teal-600"
-                                                                                checked={isMaterialCompleted(material.id)}
-                                                                                onChange={() => handleMarkComplete(material.id)}
+                                                                                checked={isMaterialCompleted(material.idMaterial || material.id)}
+                                                                                onChange={() => handleMarkComplete(material.idMaterial || material.id)}
                                                                             />
                                                                             <span className="text-xl mr-3">
                                                                                 {material.tipo === 'video' ? '🎥' : material.tipo === 'pdf' ? '📄' : '🔗'}
                                                                             </span>
                                                                             <div>
-                                                                                <p className={`text-sm font-medium ${isMaterialCompleted(material.id) ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{material.titulo}</p>
+                                                                                <p className={`text-sm font-medium ${isMaterialCompleted(material.idMaterial || material.id) ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{material.titulo}</p>
                                                                                 <p className="text-xs text-gray-500 uppercase">{material.tipo}</p>
                                                                             </div>
                                                                         </div>
                                                                         <div className="flex items-center space-x-3">
                                                                             <button
-                                                                                onClick={() => handleDownloadMaterial(material.id, material.titulo)}
+                                                                                onClick={() => handleDownloadMaterial(material.idMaterial || material.id, material.titulo)}
                                                                                 className="text-teal-600 hover:text-teal-800 text-sm font-medium"
                                                                             >
                                                                                 Descargar

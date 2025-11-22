@@ -2,18 +2,23 @@ import axios from 'axios';
 
 const client = axios.create({
   baseURL: 'http://localhost:8080/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  // NO configurar Content-Type aquí para permitir que FormData lo configure automáticamente
 });
 
-// Add a request interceptor to attach the token
+// Add a request interceptor to attach the token and configure headers
 client.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Solo configurar Content-Type si no es FormData
+    // FormData configurará automáticamente multipart/form-data con el boundary correcto
+    if (!(config.data instanceof FormData)) {
+      config.headers['Content-Type'] = 'application/json';
+    }
+
     return config;
   },
   (error) => {

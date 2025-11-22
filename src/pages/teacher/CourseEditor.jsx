@@ -149,22 +149,50 @@ const CourseEditor = () => {
         formData.append('duracionMinutos', '0');
 
         try {
+            console.log('=== SUBIENDO MATERIAL ===');
+            console.log('FormData contenido:', {
+                file: materialFile.name,
+                titulo: materialTitle,
+                idModulo: selectedModuleId,
+                tipo: type
+            });
+
             await materialService.upload(formData);
+
+            console.log('✅ Material subido exitosamente');
+
+            // Limpiar formulario
             setMaterialFile(null);
             setMaterialTitle('');
             setSelectedModuleId(null);
+
+            // Resetear el input de archivo
+            const fileInput = document.querySelector('input[type="file"]');
+            if (fileInput) fileInput.value = '';
+
             alert('Material subido correctamente');
 
             // Refresh modules
+            console.log('Recargando módulos...');
             const modulesResponse = await courseService.getModules(id);
+            console.log('Respuesta de módulos:', modulesResponse);
+
             let mods = [];
             if (modulesResponse.data && Array.isArray(modulesResponse.data)) mods = modulesResponse.data;
             else if (modulesResponse.data && modulesResponse.data.modulos) mods = modulesResponse.data.modulos;
             else if (Array.isArray(modulesResponse)) mods = modulesResponse;
+
+            console.log('Módulos procesados:', mods);
+            console.log('Número de módulos:', mods.length);
+            if (mods.length > 0) {
+                console.log('Materiales en primer módulo:', mods[0].materiales);
+            }
+
             setModules(mods);
         } catch (error) {
             console.error("Error uploading material", error);
-            alert("Error al subir el material");
+            const errorMessage = error.response?.data?.message || error.message || 'Error desconocido';
+            alert(`Error al subir el material: ${errorMessage}`);
         } finally {
             setUploading(false);
         }
@@ -343,9 +371,9 @@ const CourseEditor = () => {
                                                     </form>
                                                 )}
 
-                                                {module.Materiales && module.Materiales.length > 0 ? (
+                                                {module.materiales && module.materiales.length > 0 ? (
                                                     <ul className="space-y-2 pl-4 border-l-2 border-gray-100">
-                                                        {module.Materiales.map(mat => (
+                                                        {module.materiales.map(mat => (
                                                             <li key={mat.id} className="text-sm text-gray-600 flex items-center">
                                                                 <span className="mr-2">{mat.tipo === 'video' ? '🎥' : mat.tipo === 'pdf' ? '📄' : '🔗'}</span>
                                                                 {mat.titulo}
