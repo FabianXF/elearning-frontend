@@ -26,7 +26,7 @@ const ForumDetail = () => {
                 console.log('Response.data.foro.Mensajes:', response.data?.foro?.Mensajes);
 
                 const forumData = response.data?.foro || response.data;
-                const messagesData = response.data?.foro?.Mensajes || response.data?.Mensajes || [];
+                const messagesData = response.data?.foro?.mensajes || response.data?.mensajes || response.data?.foro?.Mensajes || response.data?.Mensajes || [];
 
                 console.log('Extracted Forum Data:', forumData);
                 console.log('Extracted Messages:', messagesData);
@@ -56,7 +56,7 @@ const ForumDetail = () => {
 
             // Refresh messages
             const response = await forumService.getById(id);
-            setMessages(response.data?.foro?.Mensajes || response.data?.Mensajes || []);
+            setMessages(response.data?.foro?.mensajes || response.data?.mensajes || response.data?.foro?.Mensajes || response.data?.Mensajes || []);
             setNewMessage('');
         } catch (error) {
             console.error('Error posting message:', error);
@@ -74,7 +74,7 @@ const ForumDetail = () => {
 
             // Refresh messages
             const response = await forumService.getById(id);
-            setMessages(response.data?.foro?.Mensajes || response.data?.Mensajes || []);
+            setMessages(response.data?.foro?.mensajes || response.data?.mensajes || response.data?.foro?.Mensajes || response.data?.Mensajes || []);
         } catch (error) {
             console.error('Error deleting message:', error);
             alert('Error al eliminar el mensaje');
@@ -136,9 +136,12 @@ const ForumDetail = () => {
                         </div>
                     ) : (
                         messages.map((message) => {
-                            const isAuthor = user && (
-                                String(user.id) === String(message.idUsuario) ||
-                                String(user.idUsuario) === String(message.idUsuario)
+                            // Solo docentes y administradores pueden eliminar mensajes
+                            const canDelete = user && (
+                                user.rol === 'docente' ||
+                                user.rol === 'admin' ||
+                                user.role === 'docente' ||
+                                user.role === 'admin'
                             );
 
                             return (
@@ -146,11 +149,11 @@ const ForumDetail = () => {
                                     <div className="flex justify-between items-start mb-3">
                                         <div className="flex items-center">
                                             <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center text-white font-bold mr-3">
-                                                {(message.Usuario?.nombre || 'U')[0].toUpperCase()}
+                                                {(message.Usuario?.nombre || message.usuario?.nombre || message.Usuario?.name || message.usuario?.name || 'U')[0].toUpperCase()}
                                             </div>
                                             <div>
                                                 <p className="font-semibold text-gray-800">
-                                                    {message.Usuario?.nombre || 'Usuario'}
+                                                    {message.Usuario?.nombre || message.usuario?.nombre || message.Usuario?.name || message.usuario?.name || 'Usuario'}
                                                 </p>
                                                 <p className="text-xs text-gray-500">
                                                     {new Date(message.createdAt || message.fecha).toLocaleDateString('es-ES', {
@@ -163,7 +166,7 @@ const ForumDetail = () => {
                                                 </p>
                                             </div>
                                         </div>
-                                        {isAuthor && (
+                                        {canDelete && (
                                             <button
                                                 onClick={() => handleDeleteMessage(message.id || message.idMensaje)}
                                                 className="text-red-600 hover:text-red-800 text-sm"

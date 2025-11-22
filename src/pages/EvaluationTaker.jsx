@@ -18,23 +18,30 @@ const EvaluationTaker = () => {
     useEffect(() => {
         const fetchEvaluation = async () => {
             try {
-                // Note: You'll need to add a getById method to evaluationService
-                const response = await evaluationService.getResults(id);
-
-                // Check if user already took this evaluation
-                if (response.data?.resultado) {
-                    setResult(response.data.resultado);
-                } else {
-                    // Fetch evaluation details (you may need to adjust this based on your API)
-                    setEvaluation(response.data?.evaluacion || response.data);
-
-                    // Initialize timer if duration is set
-                    if (response.data?.evaluacion?.duracion) {
-                        setTimeLeft(response.data.evaluacion.duracion * 60); // Convert to seconds
+                // Primero intentar obtener los resultados para ver si ya completó la evaluación
+                try {
+                    const resultsResponse = await evaluationService.getResults(id);
+                    if (resultsResponse.data?.resultado || resultsResponse.resultado) {
+                        setResult(resultsResponse.data?.resultado || resultsResponse.resultado);
+                        setLoading(false);
+                        return;
                     }
+                } catch (error) {
+                    console.log('No hay resultados previos, cargando evaluación...');
+                }
+
+                // Si no tiene resultados, cargar la evaluación para que pueda responderla
+                const response = await evaluationService.getById(id);
+                const evaluationData = response.data || response;
+                setEvaluation(evaluationData);
+
+                // Inicializar timer si hay duración
+                if (evaluationData.duracion) {
+                    setTimeLeft(evaluationData.duracion * 60);
                 }
             } catch (error) {
                 console.error('Error fetching evaluation:', error);
+                alert('Error al cargar la evaluación');
             } finally {
                 setLoading(false);
             }
@@ -79,7 +86,27 @@ const EvaluationTaker = () => {
 
         setSubmitting(true);
         try {
-            const formattedAnswers = evaluation.preguntas.map((_, index) => answers[index] ?? -1);
+            // Construir array de respuestas con el formato que espera el backend
+            const formattedAnswers = evaluation.preguntas.map((pregunta, index) => {
+                const selectedOptionIndex = answers[index];
+
+                if (selectedOptionIndex === undefined || selectedOptionIndex === null) {
+                    return {
+                        idPregunta: pregunta.idPregunta,
+                        idOpcionSeleccionada: null,
+                        respuestaTexto: null
+                    };
+                }
+
+                const selectedOption = pregunta.opciones[selectedOptionIndex];
+                return {
+                    idPregunta: pregunta.idPregunta,
+                    idOpcionSeleccionada: selectedOption?.idOpcion || null,
+                    respuestaTexto: null
+                };
+            });
+
+            console.log('Respuestas enviadas:', formattedAnswers);
             const response = await evaluationService.submit(id, formattedAnswers);
             setResult(response.data?.resultado || response.data);
         } catch (error) {
@@ -185,8 +212,8 @@ const EvaluationTaker = () => {
                                         <label
                                             key={oIndex}
                                             className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${answers[qIndex] === oIndex
-                                                    ? 'border-teal-600 bg-teal-50'
-                                                    : 'border-gray-200 hover:border-teal-300'
+                                                ? 'border-teal-600 bg-teal-50'
+                                                : 'border-gray-200 hover:border-teal-300'
                                                 }`}
                                         >
                                             <input
@@ -198,7 +225,7 @@ const EvaluationTaker = () => {
                                                 className="h-4 w-4 text-teal-600 mr-3"
                                             />
                                             <span className="text-gray-700">
-                                                {String.fromCharCode(65 + oIndex)}. {option}
+                                                {String.fromCharCode(65 + oIndex)}. {option.texto || option}
                                             </span>
                                         </label>
                                     ))}

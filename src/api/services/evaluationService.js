@@ -12,6 +12,11 @@ const evaluationService = {
         return response.data;
     },
 
+    getById: async (id) => {
+        const response = await client.get(`/evaluaciones/${id}`);
+        return response.data;
+    },
+
     submit: async (id, answers) => {
         const response = await client.post(endpoints.evaluations.submit(id), { respuestas: answers });
         return response.data;

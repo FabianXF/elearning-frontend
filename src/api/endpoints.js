@@ -27,9 +27,10 @@ const endpoints = {
     forums: {
         create: '/foros',
         getByCourse: (idCurso) => `/foros/curso/${idCurso}`,
+        myForums: '/foros/mis-foros',
         detail: (id) => `/foros/${id}`,
         postMessage: (id) => `/foros/${id}/mensajes`,
-        deleteMessage: (id) => `/mensajes/${id}`,
+        deleteMessage: (id) => `/foros/mensajes/${id}`,
     },
     progress: {
         get: (idCurso) => `/progreso/${idCurso}`,
