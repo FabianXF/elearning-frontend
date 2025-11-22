@@ -4,7 +4,7 @@ import client from '../api/client';
 import endpoints from '../api/endpoints';
 
 const ProfilePage = () => {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         nombre: '',
@@ -53,14 +53,29 @@ const ProfilePage = () => {
                 payload.password = formData.password;
             }
 
-            await client.put(endpoints.users.profile, payload);
+            console.log('📤 Actualizando perfil con payload:', payload);
+            const response = await client.put(endpoints.users.updateProfile, payload);
+            console.log('✅ Respuesta del servidor:', response);
+
+            // Actualizar el usuario en el contexto sin recargar la página
+            updateUser({
+                nombre: formData.nombre,
+                avatar: formData.avatar
+            });
 
             setMessage({ type: 'success', text: 'Perfil actualizado correctamente' });
             setIsEditing(false);
-            window.location.reload();
+
+            // Limpiar campos de contraseña
+            setFormData(prev => ({
+                ...prev,
+                password: '',
+                confirmPassword: ''
+            }));
 
         } catch (error) {
-            console.error("Error updating profile", error);
+            console.error("❌ Error updating profile:", error);
+            console.error("❌ Error response:", error.response);
             setMessage({ type: 'error', text: error.response?.data?.message || 'Error al actualizar perfil' });
         } finally {
             setLoading(false);

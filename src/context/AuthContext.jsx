@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+﻿import React, { createContext, useState, useEffect, useContext } from 'react';
 import authService from '../api/services/authService';
 
 const AuthContext = createContext(null);
@@ -8,7 +8,6 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Check for stored token and user on mount
         const storedUser = localStorage.getItem('user');
         const storedToken = localStorage.getItem('token');
 
@@ -27,14 +26,7 @@ export const AuthProvider = ({ children }) => {
     const login = async (credentials) => {
         try {
             const data = await authService.login(credentials);
-            // Assuming data.data contains { user, token } or similar based on standard JWT responses
-            // The spec says response format is { status, message, data }
-            // We need to see what 'data' actually contains. Usually it has the token and user info.
-            // Let's assume data.data = { token, user: {...} } or similar. 
-            // If the backend returns the token directly in data, we'll adjust.
-
-            // Based on typical implementations:
-            const { token, user } = data.data; // Adjust based on actual response structure if needed
+            const { token, user } = data.data;
 
             if (token) {
                 localStorage.setItem('token', token);
@@ -71,8 +63,13 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    const updateUser = (updatedUserData) => {
+        const updatedUser = { ...user, ...updatedUserData };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+    };
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, register, logout, updateUser, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     );

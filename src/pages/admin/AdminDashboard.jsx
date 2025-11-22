@@ -19,9 +19,14 @@ const AdminDashboard = () => {
         const fetchStats = async () => {
             try {
                 const response = await adminService.getMonitorData();
-                setStats(response.data || response);
+                console.log('📊 Respuesta completa:', response);
+                console.log('📊 response.data:', response.data);
+
+                const statsData = response.data || response;
+                console.log('📊 Stats finales:', statsData);
+                setStats(statsData);
             } catch (error) {
-                console.error('Error fetching admin stats:', error);
+                console.error('❌ Error fetching admin stats:', error);
             } finally {
                 setLoading(false);
             }

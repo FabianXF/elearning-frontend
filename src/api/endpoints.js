@@ -47,7 +47,8 @@ const endpoints = {
         monitor: '/admin/monitor',
     },
     users: {
-        profile: '/users/profile',
+        profile: (id) => `/users/profile/${id}`,
+        updateProfile: '/users/profile',
     }
 };
 
