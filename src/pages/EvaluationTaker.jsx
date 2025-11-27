@@ -205,7 +205,7 @@ const EvaluationTaker = () => {
                         {evaluation.preguntas?.map((question, qIndex) => (
                             <div key={qIndex} className="bg-white rounded-lg shadow-md p-6">
                                 <h3 className="font-semibold text-gray-800 text-lg mb-4">
-                                    {qIndex + 1}. {question.pregunta}
+                                    {qIndex + 1}. {question.textoPregunta || question.pregunta}
                                 </h3>
                                 <div className="space-y-3">
                                     {question.opciones?.map((option, oIndex) => (

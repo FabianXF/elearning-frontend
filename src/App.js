@@ -17,6 +17,7 @@ import CourseEditor from './pages/teacher/CourseEditor';
 import EvaluationCreator from './pages/teacher/EvaluationCreator';
 import ForumDetail from './pages/ForumDetail';
 import EvaluationTaker from './pages/EvaluationTaker';
+import EvaluationResults from './pages/teacher/EvaluationResults';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import GradingPanel from './pages/teacher/GradingPanel';
@@ -48,6 +49,7 @@ function App() {
 
             {/* Evaluation Routes */}
             <Route path="/evaluations/:id" element={<EvaluationTaker />} />
+            <Route path="/evaluations/:id/results" element={<EvaluationResults />} />
 
             {/* Admin Routes */}
             <Route path="/admin/dashboard" element={<AdminDashboard />} />

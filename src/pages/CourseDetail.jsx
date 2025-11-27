@@ -392,10 +392,17 @@ const CourseDetail = () => {
                                                             </div>
                                                         </div>
                                                         <button
-                                                            onClick={() => navigate(`/evaluations/${evaluation.id || evaluation.idEvaluacion}`)}
+                                                            onClick={() => {
+                                                                const evalId = evaluation.id || evaluation.idEvaluacion;
+                                                                if (isTeacher || user?.rol === 'admin') {
+                                                                    navigate(`/evaluations/${evalId}/results`);
+                                                                } else {
+                                                                    navigate(`/evaluations/${evalId}`);
+                                                                }
+                                                            }}
                                                             className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition text-sm"
                                                         >
-                                                            {isTeacher ? 'Ver Resultados' : 'Realizar'}
+                                                            {isTeacher || user?.rol === 'admin' ? 'Ver Resultados' : 'Realizar'}
                                                         </button>
                                                     </div>
                                                 </div>

@@ -26,6 +26,11 @@ const evaluationService = {
         const response = await client.get(endpoints.evaluations.results(id));
         return response.data;
     },
+
+    getEstudiantesResults: async (id) => {
+        const response = await client.get(`/evaluaciones/${id}/estudiantes-results`);
+        return response.data;
+    },
 };
 
 export default evaluationService;
